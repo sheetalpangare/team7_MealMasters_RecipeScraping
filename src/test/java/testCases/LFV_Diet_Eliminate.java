@@ -141,7 +141,7 @@ public class LFV_Diet_Eliminate {
 		}
 	}
 		
-		private void recipeDetails(String recipeURL) throws Exception {
+		private void recipeDetails(WebDriver driver,String recipeURL) throws Exception {
 			// To get the RecipeURL
 
 			//System.out.println("RecipeUrl: " + recipeURL);
@@ -195,6 +195,10 @@ public class LFV_Diet_Eliminate {
 //			System.out.println("Cuisine Category: " + Cuisine.getText());
 
 			System.out.println("--------------------");
+		}
+		
+		private void createEliminateList() {
+			
 		}
 		
 	
