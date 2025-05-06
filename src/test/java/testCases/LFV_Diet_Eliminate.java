@@ -39,6 +39,8 @@ public class LFV_Diet_Eliminate {
 
             "molasses", "brown rice syrup", "splenda", "nutra sweet", "stevia", "barley malt"); 
 	
+	static WebDriver driver;
+	
 	public static void main(String[] args) throws InterruptedException {
 	
 
@@ -88,7 +90,7 @@ public class LFV_Diet_Eliminate {
 				.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'Recipes List')]")));
 		Assert.assertTrue(recipeslink.isDisplayed(), "Element is not visible");
 		if (driver.getCurrentUrl().equals("https://www.tarladalal.com/#google_vignette")) {
-			WebElement adx = driver.findElement(By.xpath("contains(text(),'Close')]"));
+			WebElement adx = driver.findElement(By.xpath("//*[contains(text(),'Close')]"));
 			adx.click();
 			System.out.println("closed the ad before clicking the Recipes link");
 		}
@@ -137,8 +139,65 @@ public class LFV_Diet_Eliminate {
 		        break; // break the loop when next page is not found
 		    }
 		}
-	
 	}
+		
+		private void recipeDetails(String recipeURL) throws Exception {
+			// To get the RecipeURL
 
+			//System.out.println("RecipeUrl: " + recipeURL);
+			if (recipeURL != null && recipeURL.contains("recipe")) return ;
+			driver.navigate().to(recipeURL); // Navigate to the recipe page
+
+			// To get the RecipeName
+			System.out.println("RecipeName: " + driver.getTitle());
+			Thread.sleep(1000);
+
+			// To get the RecipeID
+			String recipeId = recipeURL.replaceAll(".*-(\\d+)r$", "$1");
+			System.out.println("RecipeID: " + recipeId);
+
+			// To get the Preparation time
+			WebElement prepTime = driver
+					.findElement(By.xpath("//div[@class='content']//h6[text()='Preparation Time']/..//strong"));
+			System.out.println("Preparation Time: " + prepTime.getText());
+
+			// To get the Cooking time
+			WebElement cookTime = driver
+					.findElement(By.xpath("//div[@class='content']//h6[text()='Cooking Time']/..//strong"));
+			System.out.println("Cooking Time: " + cookTime.getText());
+
+			// To get the Makes
+			WebElement servings = driver.findElement(By.xpath("//div[@class='content']//h6[text()='Makes ']/..//strong"));
+			System.out.println("Makes: " + servings.getText());
+
+			// To Extract ingredients
+
+			List<WebElement> ingredientElements = driver.findElements(By.xpath("//div[@id='ingredients']"));
+			System.out.println("Ingredients:");
+			for (WebElement ingredient : ingredientElements) {
+				System.out.println("- " + ingredient.getText());
+			}
+
+			// To get the Preparation Method
+			WebElement method = driver.findElement(By.xpath("//div[@id='methods']"));
+			System.out.println("Preparation_method: " + method.getText());
+
+			// To get the Recipe Tags
+			WebElement Tags = driver.findElement(By.xpath("//ul[@class='tags-list']"));
+			System.out.println("Tags: " + Tags.getText());
+
+			// To get the Nutrient values
+			WebElement Nutrients = driver.findElement(By.id("nutrients"));
+			System.out.println("Nutrients Values: " + Nutrients.getText());
+
+			// To get the Cuisine Category
+//			WebElement Cuisine = driver.findElement(By.xpath("//p/span[3]/a"));
+//			System.out.println("Cuisine Category: " + Cuisine.getText());
+
+			System.out.println("--------------------");
+		}
+		
+	
+	
 
 }
