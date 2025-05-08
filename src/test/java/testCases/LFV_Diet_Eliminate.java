@@ -18,6 +18,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 
+import base.DriverManager;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import utilities.AddHandler;
 import utilities.DBConnection;
@@ -42,6 +43,8 @@ public class LFV_Diet_Eliminate {
 		List<String> urls = new ArrayList<String>();
 		AddHandler ads = new AddHandler();
 		WebDriverManager.chromedriver().setup();
+		DriverManager.createDriver("chrome", true); // Initializes a headless Chrome browser
+		WebDriver driver = DriverManager.getDriver();
 
 //	    WebDriver driver = new ChromeDriver();
 
@@ -66,7 +69,7 @@ public class LFV_Diet_Eliminate {
         Map<String, Object> prefs = new HashMap<>();
 		prefs.put("profile.managed_default_content_settings.images", 2); // Disable images
 		options.setExperimentalOption("prefs", prefs);
-		WebDriver driver = new ChromeDriver(options); 
+//		WebDriver driver = new ChromeDriver(options); 
 //		WebDriver driver = new ChromeDriver(options); 
 
 	     Thread.sleep(2000);
@@ -103,9 +106,9 @@ public class LFV_Diet_Eliminate {
 		int currentPage = 1;
 		while (true) {
 		    try {
-		    	if (currentPage == 5) {
-		    		break;
-		    	}
+//		    	if (currentPage == 2) {
+//		    		break;
+//		    	}
 		        // Wait for the recipes to load
 		        new WebDriverWait(driver, Duration.ofSeconds(10)).until(
 		            ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//div[@class='overlay-content']//a[@href]"))
@@ -117,7 +120,7 @@ public class LFV_Diet_Eliminate {
 		        for (WebElement link : recipeLinks) {
 					urls.add(link.getAttribute("href"));			
 				}
-		        currentPage += 1;
+//		        currentPage += 1;
 				
 //		        for (WebElement recipeLink : recipeLinks) {
 //		        	currentPage += 1;
@@ -265,9 +268,10 @@ public class LFV_Diet_Eliminate {
 
 		// To get the Nutrient values
 		try {
-		WebElement Nutrients = driver.findElement(By.id("nutrients"));
-		System.out.println("Nutrients Values: " + Nutrients.getText());
-		receipe.nutrient_values = Nutrients.getText();
+		WebElement Nutrients = driver.findElement(By.id("rcpnuts"));
+		String nutrientText = Nutrients.getText().trim();
+		System.out.println("Nutrients Values: " + nutrientText);
+		receipe.nutrient_values = nutrientText;
 	    }catch (Exception e) {
 		receipe.nutrient_values = " ";
        }
@@ -331,6 +335,16 @@ public class LFV_Diet_Eliminate {
 
 		System.out.println("Cuisine Category: " + cuisineCategory);
 		receipe.cuisine_category = cuisineCategory;
+		
+
+		//To get recipe description
+		try {
+		WebElement recipe_description =  driver.findElement(By.xpath("//*[@id='aboutrecipe']/p[1]"));
+		System.out.println("Description of the recipe: " + recipe_description.getText());
+		receipe.recipe_description = recipe_description.getText();
+	    }catch (Exception e) {
+		receipe.recipe_description = " ";
+       }
 
 		System.out.println("--------------------");
 		createEliminateList(receipe);

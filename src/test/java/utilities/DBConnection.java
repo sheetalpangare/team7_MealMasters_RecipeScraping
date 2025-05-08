@@ -22,7 +22,7 @@ public class DBConnection {
 	}
 	
 	public static void insertReceipe(ReceipePojo receipe) throws Exception {
-		String sql = "INSERT INTO LFV_Eliminate_new (recipe_id, recipe_name, recipe_category, food_category, ingredients, "
+		String sql = "INSERT INTO LFV_Eliminate (recipe_id, recipe_name, recipe_category, food_category, ingredients, "
 				+ "preparation_time, cooking_time, tag, no_of_servings, cuisine_category, "
 				+ "recipe_description, preparation_method, nutrient_values, recipe_url) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
