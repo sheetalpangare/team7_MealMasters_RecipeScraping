@@ -5,21 +5,19 @@ import lombok.Data;
 @Data
 public class ReceipePojo {
 	
-	String Recipe_ID;
-	String Recipe_Name;
-	String Recipe_Category;
-	String Food_Category;
-	String Ingredients;
-	String Preparation_Time;
-	String Cooking_Time;
-	String Tag;
-	String No_of_servings;
-	String Cuisine_category;
-	String Recipe_Description;
-	String Preparation_method;
-	String Nutrient_values;
-	String Recipe_URL;
-	
-	
+	public String recipe_id;
+	public String recipe_name;
+	public String recipe_category;
+	public String food_category;
+	public String ingredients;
+	public String preparation_time;
+	public String cooking_time;
+	public String tag;
+	public String no_of_servings;
+	public String cuisine_category;
+	public String recipe_description;
+	public String preparation_method;
+	public String nutrient_values;
+	public String recipe_URL;
 
 }

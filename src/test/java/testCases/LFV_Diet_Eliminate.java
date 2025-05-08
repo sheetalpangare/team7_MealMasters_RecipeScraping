@@ -1,8 +1,12 @@
 package testCases;
 
+import java.nio.file.spi.FileSystemProvider;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -16,44 +20,36 @@ import org.testng.Assert;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import utilities.AddHandler;
+import utilities.DBConnection;
+import utilities.ReceipePojo;
 
 public class LFV_Diet_Eliminate {
 	
-	public static List<String> excludeIngredients = Arrays.asList(
+	public static List<String> excludeIngredients = Arrays.asList( "pork", "meat", "poultry", "fish", "sausage", "ham", "salami", "bacon", "milk", "cheese",
+	           "yogurt", "butter", "ice cream", "egg", "prawn", "oil", "olive oil", "coconut oil", "soybean oil",
+	            "corn oil", "safflower oil", "sunflower oil", "rapeseed oil", "peanut oil", "cottonseed oil",
+	            "canola oil", "mustard oil", "cereals", "tinned vegetable", "bread", "maida", "atta", "sooji", "poha",
+	            "cornflake", "cornflour", "pasta", "white rice", "pastry", "cakes", "biscuit", "soy", "soy milk",
+	            "white miso paste", "soy sauce", "soy curls", "edamame", "soy yogurt", "soy nut", "tofu", "pies",
+	            "chip", "cracker", "potatoe", "sugar", "jaggery", "glucose", "fructose", "corn syrup", "cane sugar",
+	            "aspartame", "cane solid", "maltose", "dextrose", "sorbitol", "mannitol", "xylitol", "maltodextrin",
+	            "molasses", "brown rice syrup", "splenda", "nutra sweet", "stevia", "barley malt"); 
 
-            "pork", "meat", "poultry", "fish", "sausage", "ham", "salami", "bacon", "milk", "cheese",
-
-           "yogurt", "butter", "ice cream", "egg", "prawn", "oil", "olive oil", "coconut oil", "soybean oil",
-
-            "corn oil", "safflower oil", "sunflower oil", "rapeseed oil", "peanut oil", "cottonseed oil",
-
-            "canola oil", "mustard oil", "cereals", "tinned vegetable", "bread", "maida", "atta", "sooji", "poha",
-
-            "cornflake", "cornflour", "pasta", "white rice", "pastry", "cakes", "biscuit", "soy", "soy milk",
-
-            "white miso paste", "soy sauce", "soy curls", "edamame", "soy yogurt", "soy nut", "tofu", "pies",
-
-            "chip", "cracker", "potatoe", "sugar", "jaggery", "glucose", "fructose", "corn syrup", "cane sugar",
-
-            "aspartame", "cane solid", "maltose", "dextrose", "sorbitol", "mannitol", "xylitol", "maltodextrin",
-
-            "molasses", "brown rice syrup", "splenda", "nutra sweet", "stevia", "barley malt"); 
 	
 	static WebDriver driver;
 	
-	public static void main(String[] args) throws InterruptedException {
-	
-
-	     		
+	public static void main(String[] args) throws Exception {
+		List<String> urls = new ArrayList<String>();
 		AddHandler ads = new AddHandler();
 		WebDriverManager.chromedriver().setup();
 
 //	    WebDriver driver = new ChromeDriver();
 
 	        ChromeOptions options = new ChromeOptions();
+	        
 
 //		options.addArguments("--blink-settings=imagesEnabled=false");
-////		options.addArguments("--disable-images");
+//		options.addArguments("--disable-images");
 //		// options.addArguments("--disable-javascript");
 //		options.addArguments("--remote-allow-origins=*");
 //		options.addArguments("--headless");
@@ -67,7 +63,9 @@ public class LFV_Diet_Eliminate {
 //		options.addArguments("--disable-dev-shm-usage");
 //		options.addArguments("--disable-software-rasterizer");
 //		options.addArguments("--disable-features=SharedStorageAPI");
-		
+        Map<String, Object> prefs = new HashMap<>();
+		prefs.put("profile.managed_default_content_settings.images", 2); // Disable images
+		options.setExperimentalOption("prefs", prefs);
 		WebDriver driver = new ChromeDriver(options); 
 //		WebDriver driver = new ChromeDriver(options); 
 
@@ -78,6 +76,7 @@ public class LFV_Diet_Eliminate {
 		JavascriptExecutor js = (JavascriptExecutor) driver;
 		long initialHeight = ((Number) js.executeScript("return document.body.scrollHeight")).longValue();
 		while (true) {
+			
 			js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
 			Thread.sleep(1000); // adjust sleep based on load time
 			long newHeight = ((Number) js.executeScript("return document.body.scrollHeight")).longValue();
@@ -101,26 +100,36 @@ public class LFV_Diet_Eliminate {
 			ads.closeAdIfPresent(driver);
 			System.out.println("current page is: " + driver.getCurrentUrl());
 		}
-		
 		int currentPage = 1;
 		while (true) {
 		    try {
+		    	if (currentPage == 5) {
+		    		break;
+		    	}
 		        // Wait for the recipes to load
 		        new WebDriverWait(driver, Duration.ofSeconds(10)).until(
 		            ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//div[@class='overlay-content']//a[@href]"))
 		        );
-
+		        
 		        // Extract and print all recipe URLs from current page
 		        List<WebElement> recipeLinks = driver.findElements(By.xpath("//div[@class='overlay-content']//a[@href]"));
-		        for (WebElement recipeLink : recipeLinks) {
-		            String recipeUrl = recipeLink.getAttribute("href");
-		            if (recipeUrl != null && recipeUrl.contains("recipe")) {
-		                System.out.println("Recipe URL: " + recipeUrl);
-		            }
-		        }
+		        
+		        for (WebElement link : recipeLinks) {
+					urls.add(link.getAttribute("href"));			
+				}
+		        currentPage += 1;
+				
+//		        for (WebElement recipeLink : recipeLinks) {
+//		        	currentPage += 1;
+//		            String recipeUrl = recipeLink.getAttribute("href");
+//		            if (recipeUrl != null && recipeUrl.contains("recipe")) {
+//		                System.out.println("Recipe URL: " + recipeUrl);
+//		                recipeDetails(driver, recipeUrl);
+//		            }
+//		        }
 
 		        // Try to locate the next page button
-		     
+				System.out.println("Pagination URL" + driver.getCurrentUrl());
 		        WebElement nextPageLink = driver.findElement(By.xpath(
 		                "//ul[@class='pagination justify-content-center align-items-center']//a[contains(text(), 'Next')]"
 		            ));
@@ -130,7 +139,7 @@ public class LFV_Diet_Eliminate {
 		        Thread.sleep(300);
 
 		        ads.closeAdIfPresent(driver);
-
+		        Thread.sleep(300);
 		        nextPageLink = driver.findElement(By.xpath("//a[contains(text(),'Next')]")); // re-find to avoid stale
                 js.executeScript("arguments[0].click();", nextPageLink);
 
@@ -139,69 +148,197 @@ public class LFV_Diet_Eliminate {
 		        break; // break the loop when next page is not found
 		    }
 		}
+		System.out.println("url length" + urls.size());
+		for (String url : urls) {
+			System.out.println("page URL:" + url);
+			recipeDetails(driver, url);	
+		}
 	}
 		
-		private void recipeDetails(WebDriver driver,String recipeURL) throws Exception {
-			// To get the RecipeURL
+	private static void recipeDetails(WebDriver driver,String recipeURL) throws Exception {
+		// To get the RecipeURL
+		if (recipeURL == null && !recipeURL.contains("recipe")) return ;
+		driver.navigate().to(recipeURL); // Navigate to the recipe page
+		
+		ReceipePojo receipe = new ReceipePojo();
+		receipe.recipe_URL=recipeURL;
+		
+		// To get the RecipeID
+		String recipeId = recipeURL.replaceAll(".*-(\\d+)r$", "$1");
+		receipe.recipe_id = recipeId;
+			
+		// To get the RecipeName
+		receipe.recipe_name = driver.getTitle();
+		Thread.sleep(1000);
 
-			//System.out.println("RecipeUrl: " + recipeURL);
-			if (recipeURL != null && recipeURL.contains("recipe")) return ;
-			driver.navigate().to(recipeURL); // Navigate to the recipe page
-
-			// To get the RecipeName
-			System.out.println("RecipeName: " + driver.getTitle());
-			Thread.sleep(1000);
-
-			// To get the RecipeID
-			String recipeId = recipeURL.replaceAll(".*-(\\d+)r$", "$1");
-			System.out.println("RecipeID: " + recipeId);
-
-			// To get the Preparation time
+		
+		// To get the Preparation time
+		try {
 			WebElement prepTime = driver
 					.findElement(By.xpath("//div[@class='content']//h6[text()='Preparation Time']/..//strong"));
 			System.out.println("Preparation Time: " + prepTime.getText());
+			receipe.preparation_time = prepTime.getText();
+		} catch (Exception e) {
+	        receipe.preparation_time = " ";
+	    }
 
-			// To get the Cooking time
-			WebElement cookTime = driver
-					.findElement(By.xpath("//div[@class='content']//h6[text()='Cooking Time']/..//strong"));
-			System.out.println("Cooking Time: " + cookTime.getText());
+		// To get the Cooking time
+		try {
+		WebElement cookTime = driver
+				.findElement(By.xpath("//div[@class='content']//h6[text()='Cooking Time']/..//strong"));
+		System.out.println("Cooking Time: " + cookTime.getText());
+		receipe.cooking_time = cookTime.getText();
+		}catch (Exception e) {
+			receipe.cooking_time = " ";
+	    }
+		
 
-			// To get the Makes
-			WebElement servings = driver.findElement(By.xpath("//div[@class='content']//h6[text()='Makes ']/..//strong"));
-			System.out.println("Makes: " + servings.getText());
+		// To get the Makes
+		try {
+		WebElement servings = driver.findElement(By.xpath("//div[@class='content']//h6[text()='Makes ']/..//strong"));
+		System.out.println("Makes: " + servings.getText());
+		receipe.no_of_servings = servings.getText();
+		}catch (Exception e) {
+			receipe.no_of_servings = " ";
+	    }
+		// To check excluding ingrediants
+		
+		StringBuilder ingredientsBuilder = new StringBuilder();
+	    boolean hasExcludedIngredient = false;
+	    
+//		// To Extract ingredients
+//        try {
+//		List<WebElement> ingredientElements = driver.findElements(By.xpath("//div[@id='ingredients']"));
+//		System.out.println("Ingredients:");
+//		for (WebElement ingredient : ingredientElements) {
+//			String text = ingredient.getText().toLowerCase();
+//			ingredientsBuilder.append(text).append(", ");
+//			
+//		for (String exclude:excludeIngredients) {
+//			if (text.contains(exclude.toLowerCase())) {
+//                hasExcludedIngredient = true;
+//                System.out.println("Skip recipe (contains excluded ingredient: " + exclude + ")");
+//                return;
+//            }
+//        }
+//       }
+//		receipe.ingredients = ingredientsBuilder.toString();
+//    } catch (Exception e) {
+//    	receipe.ingredients = " ";
+//    }
+	    List<WebElement> ingredientElements = driver.findElements(By.xpath("//div[@class='ingredients']//p"));
+	    System.out.println("Ingredients:");
+	    List<String> ingredients = new ArrayList<>();
 
-			// To Extract ingredients
+	    for (WebElement ingredient : ingredientElements) {
+	        String text = ingredient.getText().toLowerCase();
+	        System.out.println("- " + text);
+	        ingredients.add(text);
 
-			List<WebElement> ingredientElements = driver.findElements(By.xpath("//div[@id='ingredients']"));
-			System.out.println("Ingredients:");
-			for (WebElement ingredient : ingredientElements) {
-				System.out.println("- " + ingredient.getText());
+	        for (String exclude : excludeIngredients) {
+	            if (text.contains(exclude.toLowerCase())) {
+	                System.out.println("Skip recipe (contains excluded ingredient: " + exclude + ")");
+	                return;
+	            }
+	        }
+	    }
+
+	    receipe.ingredients = String.join(", ", ingredients);
+	 		
+		// To get the Preparation Method
+		try {
+		WebElement method = driver.findElement(By.xpath("//div[@id='methods']"));
+		System.out.println("Preparation_method: " + method.getText());
+		receipe.preparation_method = method.getText();
+		}catch (Exception e) {
+			receipe.preparation_method = " ";
+	    }
+
+		// To get the Recipe Tags
+		try {
+		WebElement Tags = driver.findElement(By.xpath("//ul[@class='tags-list']"));
+		System.out.println("Tags: " + Tags.getText());
+		receipe.tag = Tags.getText();
+		}catch (Exception e) {
+			receipe.tag = " ";
+	    }
+
+		// To get the Nutrient values
+		try {
+		WebElement Nutrients = driver.findElement(By.id("nutrients"));
+		System.out.println("Nutrients Values: " + Nutrients.getText());
+		receipe.nutrient_values = Nutrients.getText();
+	    }catch (Exception e) {
+		receipe.nutrient_values = " ";
+       }
+		
+		// To get the Recipe Category
+		final String[] RECIPE_CATEGORY_OPTIONS = { "breakfast", "lunch", "snack", "dinner" }; 
+		List<WebElement> tagsList = driver.findElements(By.xpath("//ul[@class='tags-list']/li"));
+		String tagloca = "";
+		for (WebElement tag : tagsList) {
+			tagloca = tagloca + " " + tag.getText(); // Concatenate all tag texts
+		}
+		System.out.println("Recipe Tag:" + tagloca);
+
+		String recipeCategory = "";
+		for (String recipeCategoryOption : RECIPE_CATEGORY_OPTIONS) {
+			if (tagloca.toLowerCase().contains(recipeCategoryOption.toLowerCase())) {
+				recipeCategory = recipeCategoryOption;
+				break; // Stop at first match
 			}
-
-			// To get the Preparation Method
-			WebElement method = driver.findElement(By.xpath("//div[@id='methods']"));
-			System.out.println("Preparation_method: " + method.getText());
-
-			// To get the Recipe Tags
-			WebElement Tags = driver.findElement(By.xpath("//ul[@class='tags-list']"));
-			System.out.println("Tags: " + Tags.getText());
-
-			// To get the Nutrient values
-			WebElement Nutrients = driver.findElement(By.id("nutrients"));
-			System.out.println("Nutrients Values: " + Nutrients.getText());
-
-			// To get the Cuisine Category
-//			WebElement Cuisine = driver.findElement(By.xpath("//p/span[3]/a"));
-//			System.out.println("Cuisine Category: " + Cuisine.getText());
-
-			System.out.println("--------------------");
 		}
+		receipe.recipe_category = recipeCategory.toString();
+		System.out.println("Recipe Category:" + recipeCategory);
 		
-		private void createEliminateList() {
-			
+		// To get food category
+		String text = receipe.ingredients.toLowerCase();
+		if(text.contains("meat") || text.contains("chicken") || text.contains("fish")) {
+			receipe.food_category = "Non-Veg";
+		} else if(text.contains("egg") || text.contains("eggs")) {
+			receipe.food_category = "Eggitarian";
+		}else if(text.contains("butter") || text.contains("ghee") || text.contains("yougurt") 
+				|| text.contains("curd") || text.contains("cream") || text.contains("paneer") ) {
+			receipe.food_category = "Vegetarian";
+		}else if(!text.contains("onion") || !text.contains("garlic") || !text.contains("potato") 
+				|| !text.contains("radish")|| !text.contains("carrot")){
+			receipe.food_category = "Jain";
+		} else {
+			receipe.food_category = "Vegan";
 		}
-		
-	
-	
 
+		// To get the Cuisine Category
+		List<WebElement> tagElements = driver.findElements(By.xpath("//ul[@class='tags-list']//li"));
+		String cuisineCategory = "";
+
+		List<String> knownCuisines = Arrays.asList("Indian","South Indian","Rajathani","Punjabi","Bengali","orissa",
+				"Gujarati","Maharashtrian","Andhra","Kerala","Goan","Kashmiri","Himachali","Tamil nadu","Karnataka",
+				"Sindhi","Chhattisgarhi","Madhya pradesh","Assamese","Manipuri","Tripuri","Sikkimese","Mizo","Arunachali",
+				"uttarakhand","Haryanvi","Awadhi","Bihari","Uttar pradesh","Delhi","North Indian");
+
+		for (WebElement tag : tagElements) {
+		    String tagText = tag.getText().trim();
+		    for (String cuisine : knownCuisines) {
+		        if (tagText.equalsIgnoreCase(cuisine)) {
+		            cuisineCategory = cuisine;
+		            break;
+		        }
+		    }
+		    if (!cuisineCategory.isEmpty()) {
+		        break;
+		    }
+		}
+
+		System.out.println("Cuisine Category: " + cuisineCategory);
+		receipe.cuisine_category = cuisineCategory;
+
+		System.out.println("--------------------");
+		createEliminateList(receipe);
+		
+	}
+
+	private static void createEliminateList(ReceipePojo receipe) throws Exception {
+		System.out.println("receipe:" + receipe);
+		DBConnection.insertReceipe(receipe);
+	}
 }
