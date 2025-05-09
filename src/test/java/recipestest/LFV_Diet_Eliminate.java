@@ -21,6 +21,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import baseclass.BaseClass;
+import drivers.DriverManager;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import recipe.Recipe;
 import utilities.AdHandler;
@@ -49,22 +50,18 @@ public class LFV_Diet_Eliminate extends BaseClass {
 	@BeforeClass
 	public void setUp() throws InterruptedException {
 		
-		
-		WebDriverManager.chromedriver().setup();
-	    ChromeOptions options = new ChromeOptions();
-        Map<String, Object> prefs = new HashMap<>();
-//		prefs.put("profile.managed_default_content_settings.images", 2); // Disable images
-//		options.setExperimentalOption("prefs", prefs);
-		driver = new ChromeDriver(options);  
-
-	     Thread.sleep(2000);
+		 DriverManager.createDriver("chrome", true); // This should create and set the driver
+		    driver = DriverManager.getDriver();
+		    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 	    driver.get(ConfigReader.getProperty("url"));
-	    scrolldown();
-		
+		    scrolldown();
+//		    AdHandler.closeAdIfPresent(driver); 
+		    
+		    
 		
 	}
-	@Test (priority=1)
-	public void scrapeReceipeUrls() {
+	@Test
+	public void scrapeReceipeUrls() throws Exception {
 		
 		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 		WebElement recipeslink = wait
@@ -131,10 +128,7 @@ public class LFV_Diet_Eliminate extends BaseClass {
 		    }
 		}
 		 System.out.println("Collected URLs: " + urls.size());
-	}
 	
-	 @Test(priority = 2, dependsOnMethods = "scrapeRecipeURLs")
-	    public void StoreRecipePages() throws Exception {
 		for (String url : urls) {
 			System.out.println("page URL:" + url);
 			recipeDetails(driver, url);	

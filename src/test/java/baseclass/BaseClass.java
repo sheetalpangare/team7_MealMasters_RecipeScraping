@@ -8,36 +8,33 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
-import drivers.DriverFactory;
+import drivers.DriverManager;
+import io.github.bonigarcia.wdm.WebDriverManager;
 import utilities.ConfigReader;
 
 public class BaseClass {
 	
 	public WebDriver driver;
 
-	
-	
 	@BeforeClass
-//	@Parameters({"browser"})
 	public void setUp() throws InterruptedException {
 
-		DriverFactory.initializeBrowser(ConfigReader.getProperty("browser"));
-		
-		//String browser = ConfigReader.getBrowserType(); //for crossbrowser testing
-//		DriverFactory.initializeBrowser(browser);
-		
-		driver = DriverFactory.getDriver();
+		String browser = ConfigReader.getProperty("browser");
+	    boolean headless = Boolean.parseBoolean(ConfigReader.getProperty("headless"));
+	    DriverManager.createDriver(browser, headless);
+	    driver = DriverManager.getDriver();
+//	    driver.get(ConfigReader.getProperty("url"));
 
-		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-		driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
-		driver.manage().window().maximize();
+	    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+	    driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
+	    driver.manage().window().maximize(); // Optional: already added in ChromeOptions
 
 	}
 
 	@AfterClass
 	public void tearDown() {
 		//driver.manage().deleteAllCookies();
-		driver.quit();
+		DriverManager.quitDriver();
 	}
 
 

@@ -10,7 +10,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class AdHandler {
-	public void closeAdIfPresent(WebDriver driver) {
+	public static void closeAdIfPresent(WebDriver driver) {
 	    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
 	    
 	    try {
