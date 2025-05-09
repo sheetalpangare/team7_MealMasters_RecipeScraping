@@ -17,16 +17,27 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
+import baseclass.BaseClass;
+import drivers.DriverManager;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import recipe.Recipe;
 import utilities.AdHandler;
+import utilities.ConfigReader;
 import utilities.ReceipePojo;
 import utilities.DBConnection;
 
 
-public class LFV_Diet_Eliminate {
+public class LFV_Diet_Eliminate extends BaseClass {
 	
-	public static List<String> excludeIngredients = Arrays.asList( "pork", "meat", "poultry", "fish", "sausage", "ham", "salami", "bacon", "milk", "cheese",
+	static WebDriver driver;
+	ConfigReader reader = new ConfigReader();
+	List<String> urls = new ArrayList<String>();
+	AdHandler ads = new AdHandler();
+	
+	List<String> excludeIngredients = Arrays.asList( "pork", "meat", "poultry", "fish", "sausage", "ham", "salami", "bacon", "milk", "cheese",
 	           "yogurt", "butter", "ice cream", "egg", "prawn", "oil", "olive oil", "coconut oil", "soybean oil",
 	            "corn oil", "safflower oil", "sunflower oil", "rapeseed oil", "peanut oil", "cottonseed oil",
 	            "canola oil", "mustard oil", "cereals", "tinned vegetable", "bread", "maida", "atta", "sooji", "poha",
@@ -36,56 +47,23 @@ public class LFV_Diet_Eliminate {
 	            "aspartame", "cane solid", "maltose", "dextrose", "sorbitol", "mannitol", "xylitol", "maltodextrin",
 	            "molasses", "brown rice syrup", "splenda", "nutra sweet", "stevia", "barley malt"); 
 
-	
-	static WebDriver driver;
-	
-	public static void main(String[] args) throws Exception {
-		List<String> urls = new ArrayList<String>();
-		AdHandler ads = new AdHandler();
-		WebDriverManager.chromedriver().setup();
-
-//	    WebDriver driver = new ChromeDriver();
-
-	        ChromeOptions options = new ChromeOptions();
-	        
-
-//		options.addArguments("--blink-settings=imagesEnabled=false");
-//		options.addArguments("--disable-images");
-//		// options.addArguments("--disable-javascript");
-//		options.addArguments("--remote-allow-origins=*");
-//		options.addArguments("--headless");
-//		options.addArguments("--disable-popup-blocking");
-//		options.addArguments("--disable-notifications");
-//		options.addArguments("--disable-extensions");
-//		options.addArguments("enable-automation");
-//		options.addArguments("--no-sandbox");
-//		options.addArguments("--dns-prefetch-disable");
-//		options.addArguments("--disable-gpu");
-//		options.addArguments("--disable-dev-shm-usage");
-//		options.addArguments("--disable-software-rasterizer");
-//		options.addArguments("--disable-features=SharedStorageAPI");
-        Map<String, Object> prefs = new HashMap<>();
-		prefs.put("profile.managed_default_content_settings.images", 2); // Disable images
-		options.setExperimentalOption("prefs", prefs);
-		WebDriver driver = new ChromeDriver(options); 
-//		WebDriver driver = new ChromeDriver(options); 
-
-	     Thread.sleep(2000);
-
-	       driver.get("https://m.tarladalal.com/");
+	@BeforeClass
+	public void setUp() throws InterruptedException {
+		
+		 DriverManager.createDriver("chrome", true); // This should create and set the driver
+		    driver = DriverManager.getDriver();
+		    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+	    driver.get(ConfigReader.getProperty("url"));
+		    scrolldown();
+//		    AdHandler.closeAdIfPresent(driver); 
+		    
+		    
+		
+	}
+	@Test
+	public void scrapeReceipeUrls() throws Exception {
+		
 		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-		JavascriptExecutor js = (JavascriptExecutor) driver;
-		long initialHeight = ((Number) js.executeScript("return document.body.scrollHeight")).longValue();
-		while (true) {
-			
-			js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
-			Thread.sleep(1000); // adjust sleep based on load time
-			long newHeight = ((Number) js.executeScript("return document.body.scrollHeight")).longValue();
-			if (newHeight == initialHeight) {
-				break; // stop if height hasn't changed
-			}
-			initialHeight = newHeight;
-		}
 		WebElement recipeslink = wait
 				.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'Recipes List')]")));
 		Assert.assertTrue(recipeslink.isDisplayed(), "Element is not visible");
@@ -142,21 +120,22 @@ public class LFV_Diet_Eliminate {
 		        ads.closeAdIfPresent(driver);
 		        Thread.sleep(300);
 		        nextPageLink = driver.findElement(By.xpath("//a[contains(text(),'Next')]")); // re-find to avoid stale
-                js.executeScript("arguments[0].click();", nextPageLink);
+		        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", nextPageLink);
 
 		    } catch (Exception e) {
 		        System.out.println("No further page found or error: " + e.getMessage());
 		        break; // break the loop when next page is not found
 		    }
 		}
-		System.out.println("url length" + urls.size());
+		 System.out.println("Collected URLs: " + urls.size());
+	
 		for (String url : urls) {
 			System.out.println("page URL:" + url);
 			recipeDetails(driver, url);	
 		}
 	}
 		
-	private static void recipeDetails(WebDriver driver,String recipeURL) throws Exception {
+	public void recipeDetails(WebDriver driver,String recipeURL) throws Exception {
 		// To get the RecipeURL
 		if (recipeURL == null && !recipeURL.contains("recipe")) return ;
 		driver.navigate().to(recipeURL); // Navigate to the recipe page
@@ -203,9 +182,6 @@ public class LFV_Diet_Eliminate {
 			recipe.no_of_servings = " ";
 	    }
 		// To check excluding ingrediants
-		
-		StringBuilder ingredientsBuilder = new StringBuilder();
-	    boolean hasExcludedIngredient = false;
 	    
 //		// To Extract ingredients
 //        try {
@@ -334,12 +310,25 @@ public class LFV_Diet_Eliminate {
 		recipe.cuisine_category = cuisineCategory;
 
 		System.out.println("--------------------");
-		createEliminateList(recipe);
+		DBConnection.insertReceipe(recipe);
+		
+	}
+	
+	public void scrolldown() throws InterruptedException {
+		
+		JavascriptExecutor js = (JavascriptExecutor) driver;
+		long initialHeight = ((Number) js.executeScript("return document.body.scrollHeight")).longValue();
+		while (true) {
+			
+			js.executeScript("window.scrollTo(0, document.body.scrollHeight);");
+			Thread.sleep(1000); // adjust sleep based on load time
+			long newHeight = ((Number) js.executeScript("return document.body.scrollHeight")).longValue();
+			if (newHeight == initialHeight) {
+				break; // stop if height hasn't changed
+			}
+			initialHeight = newHeight;
+		}
 		
 	}
 
-	private static void createEliminateList(ReceipePojo recipe) throws Exception {
-		System.out.println("recipe:" + recipe);
-		DBConnection.insertReceipe(recipe);
-	}
 }

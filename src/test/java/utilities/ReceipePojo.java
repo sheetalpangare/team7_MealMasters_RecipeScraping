@@ -11,7 +11,7 @@ public class ReceipePojo {
 	public String recipe_name;
 	public String recipe_category;
 	public String food_category;
-	public List<String> ingredients;
+	public String ingredients;
 	public String preparation_time;
 	public String cooking_time;
 	public String tag;
