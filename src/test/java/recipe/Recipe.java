@@ -4,6 +4,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import recipestest.LFV_Diet_Add;
 import utilities.AdHandler;
 import utilities.ReceipePojo;
+
 import org.openqa.selenium.JavascriptExecutor;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -190,7 +191,7 @@ public class Recipe {
 			System.out.println("- " + ingredient.getText());
 			ingredients.add(ingredient.getText().toLowerCase());
 		}
-		pojo.ingredients = ingredients;
+//		pojo.ingredients = ingredients;
 
 		// To get the Preparation Method
 		WebElement method = driver.findElement(By.xpath("//div[@id='methods']"));

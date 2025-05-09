@@ -52,4 +52,9 @@ public class DriverFactory {
 	public static ConfigReader configReader() {
 		return configFileReader;
 	}
+
+	public static void initializeBrowser(String property) {
+		// TODO Auto-generated method stub
+		
+	}
 }

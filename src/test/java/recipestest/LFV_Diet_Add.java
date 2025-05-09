@@ -29,32 +29,32 @@ public class LFV_Diet_Add extends Recipe{
     	
     	List<ReceipePojo> addReceipes = new ArrayList<ReceipePojo>();
     	
-    	for(ReceipePojo pojo:Receipes) {
-    		boolean value = canAddToAddList(pojo);
-    		if(value == true) {
-    			addReceipes.add(pojo);
-    		}
-    	}
+//    	for(ReceipePojo pojo:Receipes) {
+//    		boolean value = canAddToAddList(pojo);
+//    		if(value == true) {
+//    			addReceipes.add(pojo);
+//    		}
+//    	}
 	
     	return addReceipes;		
     	
 	}
     
     //  check if ingredients from Receipe are exists in add ingredients.
-    private boolean canAddToAddList(ReceipePojo pojo) {
-    	List<String> ReceipeIngredients = pojo.ingredients; //list Receipe ingredients
-    	  	boolean containsIngredient=false;
-    	for(String addIng : addIngredients) {  
-    		for(String ReceipeIng : ReceipeIngredients) { //
-    			if(ReceipeIng.toLowerCase().contains(addIng)) {
-    				containsIngredient=true;
-    				break;
-  				}
-    		}			
-    	}
-    	System.out.println(containsIngredient);
-    	return containsIngredient;
-    	
-    }
+//    private boolean canAddToAddList(ReceipePojo pojo) {
+////    	List<String> ReceipeIngredients = pojo.ingredients; //list Receipe ingredients
+//    	  	boolean containsIngredient=false;
+//    	for(String addIng : addIngredients) {  
+//    		for(String ReceipeIng : ReceipeIngredients) { //
+//    			if(ReceipeIng.toLowerCase().contains(addIng)) {
+//    				containsIngredient=true;
+//    				break;
+//  				}
+//    		}			
+//    	}
+//    	System.out.println(containsIngredient);
+//    	return containsIngredient;
+//    	
+//    }
 
 }
