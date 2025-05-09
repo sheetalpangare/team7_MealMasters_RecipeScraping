@@ -1,19 +1,15 @@
 package recipestest;
 
-import java.nio.file.spi.FileSystemProvider;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
@@ -22,21 +18,17 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import baseclass.BaseClass;
 import drivers.DriverManager;
-import io.github.bonigarcia.wdm.WebDriverManager;
-import recipe.Recipe;
 import utilities.AdHandler;
 import utilities.ConfigReader;
-import utilities.ReceipePojo;
 import utilities.DBConnection;
+import utilities.ReceipePojo;
 
-
-public class LFV_Diet_Eliminate extends BaseClass {
+public class Milk_allergies {
 	
 	static WebDriver driver;
 	ConfigReader reader = new ConfigReader();
-//	List<String> urls = new ArrayList<String>();
+	
 	AdHandler ads = new AdHandler();
 	private static final Logger logger = LoggerFactory.getLogger(LFV_Diet_Eliminate.class);
 	
@@ -49,6 +41,8 @@ public class LFV_Diet_Eliminate extends BaseClass {
 	            "chip", "cracker", "potatoe", "sugar", "jaggery", "glucose", "fructose", "corn syrup", "cane sugar",
 	            "aspartame", "cane solid", "maltose", "dextrose", "sorbitol", "mannitol", "xylitol", "maltodextrin",
 	            "molasses", "brown rice syrup", "splenda", "nutra sweet", "stevia", "barley malt"); 
+	
+	List<String> milk_allergy = Arrays.asList( "milk"); 
 
 	@BeforeClass
 	public void setUp() throws InterruptedException {
@@ -58,10 +52,7 @@ public class LFV_Diet_Eliminate extends BaseClass {
 		    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 	        driver.get(ConfigReader.getProperty("url"));
 		    scrolldown();
-//		    AdHandler.closeAdIfPresent(driver); 
-		    
-		    
-		
+	
 	}
 	@Test
 	public void scrapeReceipeUrls() throws Exception {
@@ -82,9 +73,12 @@ public class LFV_Diet_Eliminate extends BaseClass {
 			ads.closeAdIfPresent(driver);
 			System.out.println("current page is: " + driver.getCurrentUrl());
 		}
+		int currentPage = 1;
 		while (true) {
 		    try {
-		    	
+		    	if (currentPage == 15) {
+		    		break;
+		    	}
 		        // Wait for the recipes to load
 		        new WebDriverWait(driver, Duration.ofSeconds(10)).until(
 		            ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//div[@class='overlay-content']//a[@href]"))
@@ -96,6 +90,8 @@ public class LFV_Diet_Eliminate extends BaseClass {
 		        for (WebElement link : recipeLinks) {
 					urls.add(link.getAttribute("href"));			
 				}
+		        currentPage += 1;
+				
 
 		        // Try to locate the next page button
 				System.out.println("Pagination URL" + driver.getCurrentUrl());
@@ -171,8 +167,7 @@ public class LFV_Diet_Eliminate extends BaseClass {
 		}catch (Exception e) {
 			recipe.no_of_servings = " ";
 	    }
-		// To check excluding ingrediants
-	    
+	
 	    List<WebElement> ingredientElements = driver.findElements(By.xpath("//div[@class='ingredients']//p"));
 	    System.out.println("Ingredients:");
 	    List<String> ingredients = new ArrayList<>();
@@ -182,12 +177,6 @@ public class LFV_Diet_Eliminate extends BaseClass {
 	        System.out.println("- " + text);
 	        ingredients.add(text);
 
-	        for (String exclude : excludeIngredients) {
-	            if (text.contains(exclude.toLowerCase())) {
-	                System.out.println("Skip recipe (contains excluded ingredient: " + exclude + ")");
-	                return;
-	            }
-	        }
 	    }
 
 	    recipe.ingredients = String.join(", ", ingredients);
@@ -280,17 +269,22 @@ public class LFV_Diet_Eliminate extends BaseClass {
 		recipe.cuisine_category = cuisineCategory;
 		
 		//To get recipe description
-				try {
-				WebElement recipe_description =  driver.findElement(By.xpath("//*[@id='aboutrecipe']/p[1]"));
-				System.out.println("Description of the recipe: " + recipe_description.getText());
-				recipe.recipe_description = recipe_description.getText();
-			    }catch (Exception e) {
-				recipe.recipe_description = " ";
-		       }
+		try {
+		WebElement recipe_description =  driver.findElement(By.xpath("//*[@id='aboutrecipe']/p[1]"));
+		System.out.println("Description of the recipe: " + recipe_description.getText());
+		recipe.recipe_description = recipe_description.getText();
+	    }catch (Exception e) {
+		recipe.recipe_description = " ";
+       }
+		
+		if(isToavoidProcessedFoodUsed(recipe.tag, recipe.preparation_method, recipe.recipe_description)) {
+			System.out.println("Skipping receipe due to processed food: " +recipe.recipe_name);
+			return;
+		}
 
 		System.out.println("--------------------");
-		DBConnection.createTable("LFV_Diet_Eliminate");
-		DBConnection.insertRecipe(recipe,"LFV_Diet_Eliminate");
+		DBConnection.createTable("LCHF_Diet_ToAvoid");
+		DBConnection.insertRecipe(recipe,"LCHF_Diet_ToAvoid");
 		
 	}
 	
@@ -310,5 +304,28 @@ public class LFV_Diet_Eliminate extends BaseClass {
 		}
 		
 	}
-
+	
+	public boolean isToavoidProcessedFoodUsed(String Tags, String method, String ingredientElements) {
+		
+//		String text = (Tags + " " + method + " " + recipe_description ).toLowerCase();
+		String text = String.join(" ",
+		        Optional.ofNullable(Tags).orElse(""),
+		        Optional.ofNullable(method).orElse(""),
+		        Optional.ofNullable(ingredientElements).orElse("")
+		).toLowerCase();
+		
+		List<String> combinedFilters = new ArrayList<>();
+	    combinedFilters.addAll(milk_allergy);
+	    combinedFilters.addAll(excludeIngredients);
+		
+		for(String filters : combinedFilters) {
+			if(text.contains(filters.toLowerCase())) {
+				System.out.println("filtered food found: " +filters);
+				System.out.println("Avoid list: " + milk_allergy);
+				return true;
+			}
+		}
+		return false;
+			
+	}
 }
