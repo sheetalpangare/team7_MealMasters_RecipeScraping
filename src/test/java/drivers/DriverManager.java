@@ -22,7 +22,7 @@ public class DriverManager {
     // Responsible for creating a new driver instance
     public static void createDriver(String browser, boolean headless) {
         WebDriver webDriver;
-//        LoggerLoad.info("Inside DriverManager: " + browser + ", Headless: " + headless);
+//       LoggerLoad.info("Inside DriverManager: " + browser + ", Headless: " + headless);
         switch (browser.toLowerCase()) {
             case "chrome":
                 WebDriverManager.chromedriver().setup();
