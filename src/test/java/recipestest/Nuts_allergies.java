@@ -1,20 +1,17 @@
 package recipestest;
 
+import java.time.Duration;
 import java.util.ArrayList;
-
 import java.util.Arrays;
 import java.util.List;
-import utilities.ReceipePojo;
-
-
-import java.time.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import utilities.LoggerReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -22,56 +19,59 @@ import baseclass.BaseClass;
 import drivers.DriverManager;
 import utilities.AdHandler;
 import utilities.ConfigReader;
+import utilities.ReceipePojo;
 import utilities.DBConnection;
 
-public class LFV_Diet_Add extends BaseClass {
+public class Nuts_allergies extends BaseClass {
 
 	static WebDriver driver;
+	private static final Logger logger = LoggerFactory.getLogger(Nuts_allergies.class);
+
 	ConfigReader reader = new ConfigReader();
 	List<String> urls = new ArrayList<String>();
 	AdHandler ads = new AdHandler();
+	
+	List<String> excludeIngredients = Arrays.asList( "pork", "meat", "poultry", "fish", "sausage", "ham", "salami", "bacon", "milk", "cheese",
+	           "yogurt", "butter", "ice cream", "egg", "prawn", "oil", "olive oil", "coconut oil", "soybean oil",
+	            "corn oil", "safflower oil", "sunflower oil", "rapeseed oil", "peanut oil", "cottonseed oil",
+	            "canola oil", "mustard oil", "cereals", "tinned vegetable", "bread", "maida", "atta", "sooji", "poha",
+	            "cornflake", "cornflour", "pasta", "white rice", "pastry", "cakes", "biscuit", "soy", "soy milk",
+	            "white miso paste", "soy sauce", "soy curls", "edamame", "soy yogurt", "soy nut", "tofu", "pies",
+	            "chip", "cracker", "potatoe", "sugar", "jaggery", "glucose", "fructose", "corn syrup", "cane sugar",
+	            "aspartame", "cane solid", "maltose", "dextrose", "sorbitol", "mannitol", "xylitol", "maltodextrin",
+	            "molasses", "brown rice syrup", "splenda", "nutra sweet", "stevia", "barley malt"); 
 
-	List<String> addIngredients = Arrays.asList("lettuce", "kale", "chard", "arugula", "spinach", "cabbage", "pumpkin",
-			"sweet potatoes", "purple potatoes", "yams", "turnip", "parsnip", "karela", "bittergourd", "beet", "carrot",
-			"cucumber", "red onion", "white onion", "broccoli", "cauliflower", "celery", "artichoke", "bell pepper",
-			"mushroom", "tomato", "banana", "mango", "papaya", "plantain", "apple", "orange", "pineapple", "pear",
-			"tangerine", "berry", "melon", "peach", "plum", "nectarine", "avocado", "amaranth", "rajgira", "ramdana",
-			"barnyard", "sanwa", "samvat ke chawal", "buckwheat", "kuttu", "finger millet", "ragi", "nachni",
-			"foxtail millet", "kangni", "kakum", "kodu", "kodon", "little millet", "moraiyo", "kutki", "shavan", "sama",
-			"pearl millet", "bajra", "broom corn millet", "chena", "sorghum", "jowar", "lentil", "pulse", "moong dhal",
-			"masoor dhal", "toor dhal", "urd dhal", "lobia", "rajma", "matar", "chana", "almond", "cashew", "pistachio",
-			"brazil nut", "walnut", "pine nut", "hazelnut", "macadamia nut", "pecan", "peanut", "hemp seed",
-			"sun flower seed", "sesame seed", "chia seed", "flax seed");
+	List<String> allergyIngredients = Arrays.asList("Peanuts", "walnut", "almond", "hazelnut", "pecan", "cashew", "pistachio", "Sesame");
 
 	@BeforeClass
 	public void setUp() throws InterruptedException {
 
-		DriverManager.createDriver("chrome", true); // This should create and set the driver
+		DriverManager.createDriver("chrome", true);
 		driver = DriverManager.getDriver();
 		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 		driver.get(ConfigReader.getProperty("url"));
 		scrolldown();
-
 	}
 
 	@Test
 	public void scrapeReceipeUrls() throws Exception {
 
 		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-		WebElement recipeslink = wait
-				.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'Recipes List')]")));
+		WebElement recipeslink = wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'Recipes List')]")));
 		Assert.assertTrue(recipeslink.isDisplayed(), "Element is not visible");
+
 		if (driver.getCurrentUrl().equals("https://www.tarladalal.com/#google_vignette")) {
+
 			WebElement adx = driver.findElement(By.xpath("//*[contains(text(),'Close')]"));
 			adx.click();
-			LoggerReader.info("closed the ad before clicking the Recipes link");
+			logger.info("closed the ad before clicking the Recipes link");
 		}
 		recipeslink.click();
 
 		if (!driver.getCurrentUrl().equals("https://www.tarladalal.com/recipes/")) {
-			System.out.println("URL mismatch! Current URL is: " + driver.getCurrentUrl());
+			logger.info("\"URL mismatch! Current URL is: \" + driver.getCurrentUrl()");
 			AdHandler.closeAdIfPresent(driver);
-			LoggerReader.info("current page is: " + driver.getCurrentUrl());
+			logger.info("\"current page is: \" + driver.getCurrentUrl()");
 		}
 		int currentPage = 1;
 		while (true) {
@@ -93,9 +93,8 @@ public class LFV_Diet_Add extends BaseClass {
 				currentPage += 1;
 
 				// Try to locate the next page button
-				System.out.println("Pagination URL" + driver.getCurrentUrl());
-				WebElement nextPageLink = driver.findElement(By.xpath(
-						"//ul[@class='pagination justify-content-center align-items-center']//a[contains(text(), 'Next')]"));
+				logger.info("\"Pagination URL\" + driver.getCurrentUrl()");
+				WebElement nextPageLink = driver.findElement(By.xpath("//ul[@class='pagination justify-content-center align-items-center']//a[contains(text(), 'Next')]"));
 				((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", nextPageLink);
 				Thread.sleep(500);
 				((JavascriptExecutor) driver).executeScript("window.scrollBy(0, -150);");
@@ -106,14 +105,14 @@ public class LFV_Diet_Add extends BaseClass {
 				((JavascriptExecutor) driver).executeScript("arguments[0].click();", nextPageLink);
 
 			} catch (Exception e) {
-				LoggerReader.info("No further page found or error: " + e.getMessage());
+				logger.info("No further page found or error: " + e.getMessage());
 				break; // break the loop when next page is not found
 			}
 		}
 		System.out.println("Collected URLs: " + urls.size());
 
 		for (String url : urls) {
-			System.out.println("page URL:" + url);
+			logger.info("page URL:" + url);
 			recipeDetails(driver, url);
 		}
 	}
@@ -137,9 +136,8 @@ public class LFV_Diet_Add extends BaseClass {
 
 		// To get the Preparation time
 		try {
-			WebElement prepTime = driver
-					.findElement(By.xpath("//div[@class='content']//h6[text()='Preparation Time']/..//strong"));
-			LoggerReader.info("Preparation Time: " + prepTime.getText());
+			WebElement prepTime = driver.findElement(By.xpath("//div[@class='content']//h6[text()='Preparation Time']/..//strong"));
+			logger.info("Preparation Time: " + prepTime.getText());
 			recipe.preparation_time = prepTime.getText();
 		} catch (Exception e) {
 			recipe.preparation_time = " ";
@@ -147,9 +145,8 @@ public class LFV_Diet_Add extends BaseClass {
 
 		// To get the Cooking time
 		try {
-			WebElement cookTime = driver
-					.findElement(By.xpath("//div[@class='content']//h6[text()='Cooking Time']/..//strong"));
-			LoggerReader.info("Cooking Time: " + cookTime.getText());
+			WebElement cookTime = driver.findElement(By.xpath("//div[@class='content']//h6[text()='Cooking Time']/..//strong"));
+			logger.info("Cooking Time: " + cookTime.getText());
 			recipe.cooking_time = cookTime.getText();
 		} catch (Exception e) {
 			recipe.cooking_time = " ";
@@ -157,28 +154,29 @@ public class LFV_Diet_Add extends BaseClass {
 
 		// To get the Makes
 		try {
-			WebElement servings = driver
-					.findElement(By.xpath("//div[@class='content']//h6[text()='Makes ']/..//strong"));
-			LoggerReader.info("Makes: " + servings.getText());
+			WebElement servings = driver.findElement(By.xpath("//div[@class='content']//h6[text()='Makes ']/..//strong"));
+			logger.info("Makes: " + servings.getText());
 			recipe.no_of_servings = servings.getText();
 		} catch (Exception e) {
 			recipe.no_of_servings = " ";
 		}
-
-		// To Extract ingredients
-
+		
 		List<WebElement> ingredientElements = driver.findElements(By.xpath("//div[@class='ingredients']//p"));
-		System.out.println("Ingredients:");
+		logger.info("Ingredients:");
 		List<String> ingredients = new ArrayList<>();
-
+		
 		for (WebElement ingredient : ingredientElements) {
 			String text = ingredient.getText().toLowerCase();
-			System.out.println("- " + text);
+			logger.info("- " + text);
 			ingredients.add(text);
 
-			for (String add : addIngredients) {
-				if (text.contains(add.toLowerCase())) {
-					LoggerReader.info("Add recipe contains added ingredient: " + add + ")");
+			List<String> combinedFilters = new ArrayList<>();
+		    combinedFilters.addAll(allergyIngredients);
+		    combinedFilters.addAll(excludeIngredients);
+		    
+			for (String exclude : combinedFilters) {
+				if (text.contains(exclude.toLowerCase())) {
+					logger.info("Nuts Allergies recipe (contains excluded ingredient: " + exclude + ")");
 					return;
 				}
 			}
@@ -189,7 +187,7 @@ public class LFV_Diet_Add extends BaseClass {
 		// To get the Preparation Method
 		try {
 			WebElement method = driver.findElement(By.xpath("//div[@id='methods']"));
-			LoggerReader.info("Preparation_method: " + method.getText());
+			logger.info("Preparation_method: " + method.getText());
 			recipe.preparation_method = method.getText();
 		} catch (Exception e) {
 			recipe.preparation_method = " ";
@@ -198,7 +196,7 @@ public class LFV_Diet_Add extends BaseClass {
 		// To get the Recipe Tags
 		try {
 			WebElement Tags = driver.findElement(By.xpath("//ul[@class='tags-list']"));
-			LoggerReader.info("Tags: " + Tags.getText());
+			logger.info("Tags: " + Tags.getText());
 			recipe.tag = Tags.getText();
 		} catch (Exception e) {
 			recipe.tag = " ";
@@ -207,7 +205,7 @@ public class LFV_Diet_Add extends BaseClass {
 		// To get the Nutrient values
 		try {
 			WebElement Nutrients = driver.findElement(By.id("nutrients"));
-			LoggerReader.info("Nutrients Values: " + Nutrients.getText());
+			logger.info("Nutrients Values: " + Nutrients.getText());
 			recipe.nutrient_values = Nutrients.getText();
 		} catch (Exception e) {
 			recipe.nutrient_values = " ";
@@ -220,8 +218,8 @@ public class LFV_Diet_Add extends BaseClass {
 		for (WebElement tag : tagsList) {
 			tagloca = tagloca + " " + tag.getText(); // Concatenate all tag texts
 		}
-		LoggerReader.info("Recipe Tag:" + tagloca);
-
+		logger.info("Recipe Tag:" + tagloca);
+	
 		String recipeCategory = "";
 		for (String recipeCategoryOption : RECIPE_CATEGORY_OPTIONS) {
 			if (tagloca.toLowerCase().contains(recipeCategoryOption.toLowerCase())) {
@@ -230,7 +228,7 @@ public class LFV_Diet_Add extends BaseClass {
 			}
 		}
 		recipe.recipe_category = recipeCategory.toString();
-		LoggerReader.info("Recipe Category:" + recipeCategory);
+		logger.info("Recipe Category:" + recipeCategory);
 
 		// To get food category
 		String text = recipe.ingredients.toLowerCase();
@@ -271,22 +269,26 @@ public class LFV_Diet_Add extends BaseClass {
 			}
 		}
 
-		LoggerReader.info("Cuisine Category: " + cuisineCategory);
+		logger.info("Cuisine Category: " + cuisineCategory);
 		recipe.cuisine_category = cuisineCategory;
 
 		// To get recipe description
 		try {
 			WebElement recipe_description = driver.findElement(By.xpath("//*[@id='aboutrecipe']/p[1]"));
-			LoggerReader.info("Description of the recipe: " + recipe_description.getText());
+			logger.info("Description of the recipe: " + recipe_description.getText());
 			recipe.recipe_description = recipe_description.getText();
 		} catch (Exception e) {
 			recipe.recipe_description = " ";
 		}
-		LoggerReader.info("--------------------");
-		//DBConnection.createTable("lfv_diet_add");
-		DBConnection.insertRecipe(recipe, "lfv_diet_add");
+
+		logger.info("-----------------------------------");
+		String tablename = "nuts_allergies";
+
+	//	DBConnection.createTable(tablename);
+		DBConnection.insertRecipe(recipe, tablename);
 
 	}
+	
 
 	public void scrolldown() throws InterruptedException {
 
@@ -306,5 +308,3 @@ public class LFV_Diet_Add extends BaseClass {
 	}
 
 }
-
-

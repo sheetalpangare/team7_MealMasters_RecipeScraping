@@ -21,5 +21,6 @@ public class ReceipePojo {
 	public String preparation_method;
 	public String nutrient_values;
 	public String recipe_URL;
+	public Object food_processing;
 
 }

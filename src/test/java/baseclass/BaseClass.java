@@ -25,8 +25,8 @@ public class BaseClass {
 	    driver = DriverManager.getDriver();
 //	    driver.get(ConfigReader.getProperty("url"));
 
-	    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-	    driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(10));
+	    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
+	    driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(20));
 	    driver.manage().window().maximize(); // Optional: already added in ChromeOptions
 
 	}

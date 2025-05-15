@@ -1,5 +1,6 @@
 package drivers;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +21,7 @@ public class DriverManager {
         configReader = new ConfigReader();
     }
     // Responsible for creating a new driver instance
-    public static void createDriver(String browser, boolean headless) {
+ /*   public static void createDriver(String browser, boolean headless) {
         WebDriver webDriver;
 //        LoggerLoad.info("Inside DriverManager: " + browser + ", Headless: " + headless);
         switch (browser.toLowerCase()) {
@@ -40,7 +41,45 @@ public class DriverManager {
                 throw new IllegalArgumentException("Unsupported browser: " + browser);
         }
         driver.set(webDriver);
+    } */
+    public static void createDriver(String browser, boolean headless) {
+        WebDriver webDriver;
+
+        switch (browser.toLowerCase()) {
+            case "chrome":
+                WebDriverManager.chromedriver().setup();
+                ChromeOptions chromeOptions = new ChromeOptions();
+                chromeOptions.addArguments("--start-maximized");
+
+         /*       if (headless) {
+                    chromeOptions.addArguments("--headless=new");  // Enable modern headless mode
+                    chromeOptions.addArguments("--disable-gpu");
+                    chromeOptions.addArguments("--window-size=1920,1080");
+                    chromeOptions.addArguments("--disable-extensions");
+                } */
+                // ✅ Disable image loading
+                Map<String, Object> prefs = new HashMap<>();
+                prefs.put("profile.managed_default_content_settings.images", 2); // 2 = block
+                chromeOptions.setExperimentalOption("prefs", prefs);
+
+                // ❌ No headless mode so browser is visible
+                chromeOptions.addArguments("--start-maximized");
+
+                webDriver = new ChromeDriver(chromeOptions);
+
+                // ✅ Add these timeout settings
+                webDriver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
+                webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+                webDriver.manage().window().maximize();
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unsupported browser: " + browser);
+        }
+
+        driver.set(webDriver);
     }
+
     // Returns the driver associated with the current thread
     public static WebDriver getDriver() {
         return driver.get();

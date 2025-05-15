@@ -25,10 +25,11 @@ import utilities.ConfigReader;
 import utilities.DBConnection;
 import utilities.ReceipePojo;
 
-public class LCHF_Diet_ToAvoid extends BaseClass {
+public class Milk_allergies extends BaseClass {
 	
 	static WebDriver driver;
 	ConfigReader reader = new ConfigReader();
+	
 	AdHandler ads = new AdHandler();
 	private static final Logger logger = LoggerFactory.getLogger(LFV_Diet_Eliminate.class);
 	
@@ -42,7 +43,7 @@ public class LCHF_Diet_ToAvoid extends BaseClass {
 	            "aspartame", "cane solid", "maltose", "dextrose", "sorbitol", "mannitol", "xylitol", "maltodextrin",
 	            "molasses", "brown rice syrup", "splenda", "nutra sweet", "stevia", "barley malt"); 
 	
-	List<String> receipes_to_avoid = Arrays.asList( "Microwave", "Processed", "Fried", "Chips", "Crackers", "ready meals"); 
+	List<String> milk_allergy = Arrays.asList( "milk"); 
 
 	@BeforeClass
 	public void setUp() throws InterruptedException {
@@ -57,7 +58,6 @@ public class LCHF_Diet_ToAvoid extends BaseClass {
 	@Test
 	public void scrapeReceipeUrls() throws Exception {
 		List<String> urls = new ArrayList<String>();
-		urls.add("https://www.tarladalal.com/banana-and-cucumber-salad-1469r");
 		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 		WebElement recipeslink = wait
 				.until(ExpectedConditions.elementToBeClickable(By.xpath("//a[contains(text(),'Recipes List')]")));
@@ -77,7 +77,7 @@ public class LCHF_Diet_ToAvoid extends BaseClass {
 		int currentPage = 1;
 		while (true) {
 		    try {
-		    	if (currentPage == 10) {
+		    	if (currentPage == 15) {
 		    		break;
 		    	}
 		        // Wait for the recipes to load
@@ -306,28 +306,27 @@ public class LCHF_Diet_ToAvoid extends BaseClass {
 		
 	}
 	
-	public boolean isToavoidProcessedFoodUsed(String Tags, String method, String recipe_description) {
+	public boolean isToavoidProcessedFoodUsed(String Tags, String method, String ingredientElements) {
 		
 //		String text = (Tags + " " + method + " " + recipe_description ).toLowerCase();
 		String text = String.join(" ",
 		        Optional.ofNullable(Tags).orElse(""),
 		        Optional.ofNullable(method).orElse(""),
-		        Optional.ofNullable(recipe_description).orElse("")
+		        Optional.ofNullable(ingredientElements).orElse("")
 		).toLowerCase();
 		
 		List<String> combinedFilters = new ArrayList<>();
-	    combinedFilters.addAll(receipes_to_avoid);
+	    combinedFilters.addAll(milk_allergy);
 	    combinedFilters.addAll(excludeIngredients);
 		
 		for(String filters : combinedFilters) {
 			if(text.contains(filters.toLowerCase())) {
-				System.out.println("Skip recipe (contains excluded ingredient: " + filters + ")");
-				System.out.println("Avoid list: " + receipes_to_avoid);
+				System.out.println("filtered food found: " +filters);
+				System.out.println("Avoid list: " + milk_allergy);
 				return true;
 			}
 		}
 		return false;
 			
 	}
-
 }

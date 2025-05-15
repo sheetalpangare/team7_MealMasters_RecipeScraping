@@ -60,8 +60,8 @@ public class LCHF_Diet_FoodProcessing extends BaseClass {
 		int currentPage = 1;
 		while (true) {
 			try {
-				if (currentPage == 5)
-					break; // Limit to 5 pages
+		//		if (currentPage == 5)
+			//		break; // Limit to 5 pages
 
 				new WebDriverWait(driver, Duration.ofSeconds(10)).until(ExpectedConditions
 						.presenceOfAllElementsLocatedBy(By.xpath("//div[@class='overlay-content']//a[@href]")));

@@ -1,19 +1,14 @@
 package recipestest;
 
-import java.nio.file.spi.FileSystemProvider;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
@@ -22,12 +17,10 @@ import org.testng.annotations.Test;
 
 import baseclass.BaseClass;
 import drivers.DriverManager;
-import io.github.bonigarcia.wdm.WebDriverManager;
-import recipe.Recipe;
 import utilities.AdHandler;
 import utilities.ConfigReader;
-import utilities.ReceipePojo;
 import utilities.DBConnection;
+import utilities.ReceipePojo;
 
 
 public class LFV_Diet_Eliminate extends BaseClass {
@@ -310,7 +303,8 @@ public class LFV_Diet_Eliminate extends BaseClass {
 		recipe.cuisine_category = cuisineCategory;
 
 		System.out.println("--------------------");
-		DBConnection.insertReceipe(recipe);
+		DBConnection.createTable("lfv_diet_eliminate");
+		DBConnection.insertRecipe(recipe,"lfv_diet_eliminate");
 		
 	}
 	
